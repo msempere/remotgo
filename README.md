@@ -30,3 +30,6 @@ none            2.0G     0  2.0G   0% /run/shm
 /dev/xvdb        17G  961M   15G   7% /mnt
 ```
 
+### License
+Distributed under MIT license. See `LICENSE` for more information.
+
