@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/user"
 
 	"github.com/codegangsta/cli"
 	"github.com/msempere/remotgo/utils"
@@ -25,7 +26,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "username",
-			Value: "username",
+			Value: "",
 			Usage: "ssh username",
 		},
 		cli.StringFlag{
@@ -46,10 +47,20 @@ func main() {
 			panic(err)
 		}
 
+		username := c.String("username")
+
+		if len(username) == 0 {
+			user, err := user.Current()
+			if err != nil {
+				panic(err)
+			}
+			username = user.Username
+		}
+
 		instances := utils.Filter(ins, utils.CreateFilter(map[string]string{"role": c.String("role"), "environment": c.String("environment")}))
 		for _, instance := range instances {
 			fmt.Println(*instance.PublicDnsName)
-			_, _, result, err := utils.SshExec(*instance.PublicDnsName, c.String("username"), c.String("password"), c.String("command"), 100)
+			_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), 100)
 			if len(err) != 0 {
 				fmt.Println(err)
 			} else {
