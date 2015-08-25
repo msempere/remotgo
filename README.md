@@ -5,7 +5,7 @@ Send commands over ssh to AWS EC2 instances
 ### Example
 Execute "df -H" command in all instances with core as role and test as environment
 ```
-> go run main.go -role core -environment test -command "df -H"
+> remotgo -role core -environment test -command "df -H"
 
 +---------------------------------------------------+
 | ec2-xx-xxx-xxx-xx.eu-west-1.compute.amazonaws.com |
