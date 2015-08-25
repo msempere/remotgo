@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/user"
+	"sync"
 
 	"github.com/codegangsta/cli"
 	"github.com/msempere/remotgo/utils"
@@ -63,15 +63,22 @@ func main() {
 		}
 
 		instances := utils.Filter(ins, utils.CreateFilter(map[string]string{"role": c.String("role"), "environment": c.String("environment")}))
+		var wg sync.WaitGroup
+		wg.Add(len(instances))
+
 		for _, instance := range instances {
-			fmt.Println(*instance.PublicDnsName)
-			_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), c.Int("timeout"))
-			if len(err) != 0 {
-				fmt.Println(err)
-			} else {
-				fmt.Println(result)
-			}
+			go func() {
+				defer wg.Done()
+				_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), c.Int("timeout"))
+
+				if len(err) != 0 {
+					utils.RenderOutput(*instance.PublicDnsName, err)
+				} else {
+					utils.RenderOutput(*instance.PublicDnsName, result)
+				}
+			}()
 		}
+		wg.Wait()
 	}
 	app.Run(os.Args)
 
