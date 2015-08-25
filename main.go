@@ -5,6 +5,7 @@ import (
 	"os/user"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/codegangsta/cli"
 	"github.com/msempere/remotgo/utils"
 )
@@ -67,7 +68,7 @@ func main() {
 		wg.Add(len(instances))
 
 		for _, instance := range instances {
-			go func() {
+			go func(instance ec2.Instance) {
 				defer wg.Done()
 				_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), c.Int("timeout"))
 
@@ -76,7 +77,7 @@ func main() {
 				} else {
 					utils.RenderOutput(*instance.PublicDnsName, result)
 				}
-			}()
+			}(*instance)
 		}
 		wg.Wait()
 	}
