@@ -30,6 +30,23 @@ none            2.0G     0  2.0G   0% /run/shm
 /dev/xvdb        17G  961M   15G   7% /mnt
 ```
 
+### Configuration
+
+The following environment variables have to be properly set:
+ - AWS_ACCESS_KEY_ID
+ - AWS_SECRET_ACCESS_KEY
+ - AWS_REGION
+ 
+To use environment variables, do the following:
+
+    $ export AWS_ACCESS_KEY_ID=<access_key>
+    $ export AWS_SECRET_ACCESS_KEY=<secret_key>
+    $ export AWS_REGION=<region>
+
+
+
+
+
 ### License
 Distributed under MIT license. See `LICENSE` for more information.
 
