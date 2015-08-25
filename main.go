@@ -39,6 +39,11 @@ func main() {
 			Value: "command",
 			Usage: "command",
 		},
+		cli.IntFlag{
+			Name:  "timeout",
+			Value: 100,
+			Usage: "ssh command timeout",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		ins, err := utils.GetInstances()
@@ -60,7 +65,7 @@ func main() {
 		instances := utils.Filter(ins, utils.CreateFilter(map[string]string{"role": c.String("role"), "environment": c.String("environment")}))
 		for _, instance := range instances {
 			fmt.Println(*instance.PublicDnsName)
-			_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), 100)
+			_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), c.Int("timeout"))
 			if len(err) != 0 {
 				fmt.Println(err)
 			} else {
