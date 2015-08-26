@@ -29,8 +29,14 @@ func main() {
 			Usage: "Instance environment",
 		},
 		cli.StringFlag{
-			Name:  "username",
-			Value: "",
+			Name: "username",
+			Value: func() string {
+				username, err := user.Current()
+				if err != nil {
+					return ""
+				}
+				return username.Username
+			}(),
 			Usage: "Ssh username (default: current user)",
 		},
 		cli.StringFlag{
@@ -60,16 +66,6 @@ func main() {
 			panic(err)
 		}
 
-		username := c.String("username")
-
-		if len(username) == 0 {
-			user, err := user.Current()
-			if err != nil {
-				panic(err)
-			}
-			username = user.Username
-		}
-
 		instances := utils.Filter(ins, utils.CreateFilter(map[string]string{"role": c.String("role"), "environment": c.String("environment")}))
 		var wg sync.WaitGroup
 		wg.Add(len(instances))
@@ -77,7 +73,7 @@ func main() {
 		for _, instance := range instances {
 			go func(instance ec2.Instance) {
 				defer wg.Done()
-				_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), c.Int("timeout"))
+				_, _, result, err := utils.SshExec(*instance.PublicDnsName, c.String("username"), c.String("password"), c.String("command"), c.Int("timeout"))
 
 				if len(err) != 0 {
 					utils.RenderOutput(*instance.PublicDnsName, err, c.Bool("quiet"))
