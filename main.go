@@ -19,17 +19,7 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "role",
-			Value: "role",
-			Usage: "Instance role",
-		},
-		cli.StringFlag{
-			Name:  "environment",
-			Value: "environment",
-			Usage: "Instance environment",
-		},
-		cli.StringFlag{
-			Name: "username",
+			Name: "username, u",
 			Value: func() string {
 				username, err := user.Current()
 				if err != nil {
@@ -40,23 +30,27 @@ func main() {
 			Usage: "Ssh username (default: current user)",
 		},
 		cli.StringFlag{
-			Name:  "password",
+			Name:  "password, p",
 			Value: "",
 			Usage: "Ssh password (default: empty)",
 		},
 		cli.StringFlag{
-			Name:  "command",
+			Name:  "command, c",
 			Value: "ls ~",
 			Usage: "Command to execute.",
 		},
 		cli.BoolFlag{
-			Name:  "quiet",
+			Name:  "quiet, q",
 			Usage: "Quiet mode (default: false)",
 		},
 		cli.IntFlag{
-			Name:  "timeout",
+			Name:  "timeout, o",
 			Value: 200,
 			Usage: "Shh command timeout (default: 200)",
+		},
+		cli.StringSliceFlag{
+			Name:  "tags, t",
+			Usage: "EC2 instance tag",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -66,7 +60,7 @@ func main() {
 			panic(err)
 		}
 
-		instances := utils.Filter(ins, utils.CreateFilter(map[string]string{"role": c.String("role"), "environment": c.String("environment")}))
+		instances := utils.Filter(ins, utils.CreateFilter(c.StringSlice("tags")))
 		var wg sync.WaitGroup
 		wg.Add(len(instances))
 

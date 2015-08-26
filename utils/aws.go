@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/aws/aws-sdk-go/service/ec2"
+import (
+	"strings"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
+)
 
 func GetInstances() ([]*ec2.Instance, error) {
 	svc := ec2.New(nil)
@@ -39,7 +43,19 @@ func exist(tag *ec2.Tag, tags []*ec2.Tag) bool {
 	return false
 }
 
-func CreateFilter(m map[string]string) func(inst *ec2.Instance) bool {
+func CreateFilter(c []string) func(inst *ec2.Instance) bool {
+	tags := make(map[string]string)
+
+	for _, tag := range c {
+		s := strings.Split(tag, ":")
+		if len(s) == 2 {
+			tags[s[0]] = s[1]
+		}
+	}
+	return createFilterMap(tags)
+}
+
+func createFilterMap(m map[string]string) func(inst *ec2.Instance) bool {
 	return func(inst *ec2.Instance) bool {
 		for key, value := range m {
 			if !exist(&ec2.Tag{Key: &key, Value: &value}, inst.Tags) {
