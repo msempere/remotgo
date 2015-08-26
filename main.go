@@ -13,37 +13,44 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "remotgo"
+	app.Email = "msempere@gmx.com"
+	app.Usage = "Send commands over ssh to AWS EC2 instances"
+	app.Version = "0.0.1"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "role",
 			Value: "role",
-			Usage: "instance role",
+			Usage: "Instance role",
 		},
 		cli.StringFlag{
 			Name:  "environment",
 			Value: "environment",
-			Usage: "instance environment",
+			Usage: "Instance environment",
 		},
 		cli.StringFlag{
 			Name:  "username",
 			Value: "",
-			Usage: "ssh username",
+			Usage: "Ssh username (default: current user)",
 		},
 		cli.StringFlag{
 			Name:  "password",
 			Value: "",
-			Usage: "ssh password",
+			Usage: "Ssh password (default: empty)",
 		},
 		cli.StringFlag{
 			Name:  "command",
-			Value: "command",
-			Usage: "command",
+			Value: "ls ~",
+			Usage: "Command to execute.",
+		},
+		cli.BoolFlag{
+			Name:  "quiet",
+			Usage: "Quiet mode (default: false)",
 		},
 		cli.IntFlag{
 			Name:  "timeout",
-			Value: 100,
-			Usage: "ssh command timeout",
+			Value: 200,
+			Usage: "Shh command timeout (default: 200)",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -73,9 +80,9 @@ func main() {
 				_, _, result, err := utils.SshExec(*instance.PublicDnsName, username, c.String("password"), c.String("command"), c.Int("timeout"))
 
 				if len(err) != 0 {
-					utils.RenderOutput(*instance.PublicDnsName, err)
+					utils.RenderOutput(*instance.PublicDnsName, err, c.Bool("quiet"))
 				} else {
-					utils.RenderOutput(*instance.PublicDnsName, result)
+					utils.RenderOutput(*instance.PublicDnsName, result, c.Bool("quiet"))
 				}
 			}(*instance)
 		}
