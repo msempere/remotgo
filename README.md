@@ -9,6 +9,16 @@ Execute "df -H" command in all instances with highway as role.
 
 ![Usage example](http://i.imgur.com/69fyPJx.gif)
 
+### Usage
+
+Use one or more -t (-tag) for selecting the tags from the instances that will receive the command specified with -c (-command).
+Use -u (-username) and -p (-password) if you need to provide it for the ssh connection.
+
+Examples:
+
+    $ remotgo -t role:core -t environment:test -t group:stack -c "uname -a"
+    $ remotgo -t name:webserver01 -t environment:production -t group:eu-servers -c "mount | column -t"
+
 ### Configuration
 
 The following environment variables have to be properly set:
