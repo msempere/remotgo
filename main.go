@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/user"
+	"runtime"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -11,6 +12,8 @@ import (
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	app := cli.NewApp()
 	app.Name = "remotgo"
 	app.Email = "msempere@gmx.com"
