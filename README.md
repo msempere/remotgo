@@ -13,6 +13,22 @@ Execute "df -H" command in all instances with highway as role.
 
 Use one or more -t (-tag) for selecting the tags from the instances that will receive the command specified with -c (-command).
 Use -u (-username) and -p (-password) if you need to provide it for the ssh connection.
+    
+    COMMANDS:
+        help, h	Shows a list of commands or help for one command
+       
+    GLOBAL OPTIONS:
+       --username, -u "user"                    Ssh username (default: current user)
+       --password, -p 				            Ssh password (default: empty)
+       --command, -c "uname -a"			        Command to execute.
+       --quiet, -q					            Quiet mode (default: false)
+       --timeout, -o "200"				        Shh command timeout (default: 200)
+       --tags, -t [--tags option --tags option]	EC2 instance tags
+       --rsa, -r "/home/user/.ssh/id_rsa"		Path to RSA file (default ~/.ssh/id_rsa)
+       --dsa, -d "/home/user/.ssh/id_dsa"		Path to DSA file (default ~/.ssh/id_dsa)
+       --help, -h					            show help
+       --version, -v				            print the version
+
 
 Examples:
 
