@@ -1,49 +1,77 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-func GetInstances() ([]*ec2.Instance, error) {
-	svc := ec2.New(nil)
-	instances := make([]*ec2.Instance, 0)
+func GetInstances(c []string) ([]*ec2.Instance, error) {
+	tags := parseTags(c)
+	filters := make([]*ec2.Filter, len(c))
 
-	resp, err := svc.DescribeInstances(nil)
-	if err != nil {
-		return nil, err
+	for key, value := range tags {
+		filters = append(filters, &ec2.Filter{
+			Name: aws.String(fmt.Sprintf("tag:%v", key)),
+			Values: []*string{
+				aws.String(value),
+			},
+		})
 	}
 
-	for idx, _ := range resp.Reservations {
-		for _, instance := range resp.Reservations[idx].Instances {
-			instances = append(instances, instance)
-		}
+	instances, err := getInstances(filters)
+
+	if err != nil {
+		return nil, err
 	}
 	return instances, nil
 }
 
-func Filter(instances []*ec2.Instance, f func(*ec2.Instance) bool) []*ec2.Instance {
-	filtered := make([]*ec2.Instance, 0)
+func getInstances(filters []*ec2.Filter) ([]*ec2.Instance, error) {
+	svc := ec2.New(nil)
+	instances := make([]*ec2.Instance, 0)
+	result, token, err := paginateResult(svc, filters, nil)
 
-	for _, instance := range instances {
-		if f(instance) {
-			filtered = append(filtered, instance)
-		}
+	if err != nil {
+		return nil, err
 	}
-	return filtered
+
+	instances = append(instances, result...)
+
+	for token != nil {
+		instances, token, err = paginateResult(svc, filters, token)
+		if err != nil {
+			return nil, err
+		}
+
+		instances = append(instances, result...)
+	}
+	return instances, nil
 }
 
-func exist(tag *ec2.Tag, tags []*ec2.Tag) bool {
-	for _, t := range tags {
-		if *t.Key == *tag.Key && *t.Value == *tag.Value {
-			return true
+func paginateResult(conn *ec2.EC2, filters []*ec2.Filter, token *string) ([]*ec2.Instance, *string, error) {
+	instances := make([]*ec2.Instance, 0)
+	params := &ec2.DescribeInstancesInput{
+		Filters:   filters,
+		NextToken: token,
+	}
+
+	result, err := conn.DescribeInstances(params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for idx, _ := range result.Reservations {
+		for _, instance := range result.Reservations[idx].Instances {
+			instances = append(instances, instance)
 		}
 	}
-	return false
+	return instances, result.NextToken, nil
 }
 
-func CreateFilter(c []string) func(inst *ec2.Instance) bool {
+func parseTags(c []string) map[string]string {
 	tags := make(map[string]string)
 
 	for _, tag := range c {
@@ -52,16 +80,5 @@ func CreateFilter(c []string) func(inst *ec2.Instance) bool {
 			tags[s[0]] = s[1]
 		}
 	}
-	return createFilterMap(tags)
-}
-
-func createFilterMap(m map[string]string) func(inst *ec2.Instance) bool {
-	return func(inst *ec2.Instance) bool {
-		for key, value := range m {
-			if !exist(&ec2.Tag{Key: &key, Value: &value}, inst.Tags) {
-				return false
-			}
-		}
-		return true
-	}
+	return tags
 }
