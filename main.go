@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"runtime"
 	"sync"
@@ -33,7 +32,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "command, c",
-			Value: fmt.Sprintf("uname -a"),
+			Value: "uname -a",
 			Usage: "Command to execute.",
 		},
 		cli.BoolFlag{
