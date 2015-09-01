@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os/user"
 	"strings"
 	"time"
 
@@ -55,22 +54,12 @@ type Results struct {
 }
 
 //support ssh timeout
-func sshExec(hostaddr, username, password, cmd string, ch chan Results) {
+func sshExec(hostaddr, username, password, rsaFilePath, dsaFilePath, cmd string, ch chan Results) {
 	var auths []ssh.AuthMethod
-	var keypath []string
-	userentry, err := user.Lookup(username)
-	if err != nil {
-		ch <- Results{err: err, stderr: err.Error()}
-		return
-	}
-
-	keyRSA := fmt.Sprintf("%s/.ssh/id_rsa", userentry.HomeDir)
-	keyDSA := fmt.Sprintf("%s/.ssh/id_dsa", userentry.HomeDir)
-	keypath = append(keypath, keyRSA, keyDSA)
 
 	k := new(keychain)
-	k.loadPEM(keyRSA)
-	k.loadPEM(keyDSA)
+	k.loadPEM(rsaFilePath)
+	k.loadPEM(dsaFilePath)
 
 	auths = append(auths, ssh.PublicKeys(k.keys...), ssh.Password(password))
 
@@ -127,9 +116,9 @@ func sshExec(hostaddr, username, password, cmd string, ch chan Results) {
 	return
 }
 
-func SshExec(hostaddr, username, password, cmd string, timeout int) (err error, rc int, stdout, stderr string) {
+func SshExec(hostaddr, username, password, rsaFilePath, dsaFilePath, cmd string, timeout int) (err error, rc int, stdout, stderr string) {
 	ch := make(chan Results)
-	go sshExec(hostaddr, username, password, cmd, ch)
+	go sshExec(hostaddr, username, password, rsaFilePath, dsaFilePath, cmd, ch)
 
 	for {
 		select {

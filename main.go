@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"os"
-	"os/user"
 	"runtime"
 	"sync"
 
@@ -22,14 +22,8 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: "username, u",
-			Value: func() string {
-				username, err := user.Current()
-				if err != nil {
-					return ""
-				}
-				return username.Username
-			}(),
+			Name:  "username, u",
+			Value: utils.GetUsername(),
 			Usage: "Ssh username (default: current user)",
 		},
 		cli.StringFlag{
@@ -39,7 +33,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "command, c",
-			Value: "ls ~",
+			Value: fmt.Sprintf("uname -a"),
 			Usage: "Command to execute.",
 		},
 		cli.BoolFlag{
@@ -53,7 +47,17 @@ func main() {
 		},
 		cli.StringSliceFlag{
 			Name:  "tags, t",
-			Usage: "EC2 instance tag",
+			Usage: "EC2 instance tags",
+		},
+		cli.StringFlag{
+			Name:  "rsa, r",
+			Value: utils.GetDefaultRSAFilePath(),
+			Usage: "Path to RSA file (default ~/.ssh/id_rsa)",
+		},
+		cli.StringFlag{
+			Name:  "dsa, d",
+			Value: utils.GetDefaultDSAFilePath(),
+			Usage: "Path to DSA file (default ~/.ssh/id_dsa)",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -68,7 +72,14 @@ func main() {
 		for _, instance := range instances {
 			go func(instance ec2.Instance) {
 				defer wg.Done()
-				_, _, result, err := utils.SshExec(*instance.PublicDnsName, c.String("username"), c.String("password"), c.String("command"), c.Int("timeout"))
+				_, _, result, err := utils.SshExec(
+					*instance.PublicDnsName,
+					c.String("username"),
+					c.String("password"),
+					c.String("rsa"),
+					c.String("dsa"),
+					c.String("command"),
+					c.Int("timeout"))
 
 				if len(err) != 0 {
 					utils.RenderOutput(*instance.PublicDnsName, err, c.Bool("quiet"))
