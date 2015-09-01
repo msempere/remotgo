@@ -57,14 +57,8 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) {
-		//ins, err := utils.GetInstances()
-
-		//if err != nil {
-		//panic(err)
-		//}
-
-		//instances := utils.Filter(ins, utils.CreateFilter(c.StringSlice("tags")))
 		instances, err := utils.GetInstances(c.StringSlice("tags"))
+
 		if err != nil {
 			panic(err)
 		}
